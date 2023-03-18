@@ -17,7 +17,8 @@ class CreateMealsTable extends Migration
             $table->id();
             $table->foreignId('organizer_id')->constrained('organizers');
             $table->string('meal_type');
-            $table->date('date');
+            $table->date('start_date');
+            $table->date('end_date');
             $table->time('time_slot');
             $table->integer('maximum_capacity');
             $table->text('description')->nullable();

@@ -9,7 +9,7 @@ class Meal extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'organizer_id', 'meal_type', 'date', 'time_slot', 'maximum_capacity', 'description'
+        'organizer_id', 'meal_type', 'start_date', 'end_date', 'time_slot', 'maximum_capacity', 'description'
     ];
 
     public function organizer()

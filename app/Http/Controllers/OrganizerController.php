@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organizer;
+use App\Models\Meal;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Requests\StoreOrganizerRequest;
 
 class OrganizerController extends Controller
 {
@@ -15,9 +18,8 @@ class OrganizerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        return Organizer::all();
+    public function index(){
+        return $this->apiResponse('success', 'Organizers', Organizer::all());
     }
 
     /**
@@ -27,7 +29,6 @@ class OrganizerController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request) {
-
         $organizer = Organizer::where('phone_number', $request->phone_number)->first();
         if ($organizer) {
             return $this->apiResponse('error', 'Organizer already exists.');
@@ -42,9 +43,9 @@ class OrganizerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        //
+    public function show($id){
+        $organizer = Organizer::with('meals')->where('id', $id)->orWhere('phone_number', $id)->first();
+        return $this->apiResponse('success', 'Organizer', $organizer);
     }
 
     /**
@@ -54,9 +55,15 @@ class OrganizerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        //
+    public function update(Request $request, $id){
+        try {
+            $organizer = Organizer::findOrFail($id);
+            $organizer->update($request->all());
+            return $this->apiResponse('success', 'Updated', $organizer);
+        } catch (ModelNotFoundException $e) {
+            return $this->apiResponse('error', 'Not Updated', "Could not find organizer");
+        }
+      
     }
 
     /**
@@ -65,8 +72,8 @@ class OrganizerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        //
+    public function destroy($id){
+        Organizer::destroy($id);
+        return $this->apiResponse('success', 'Deleted');
     }
 }

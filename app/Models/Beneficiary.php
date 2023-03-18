@@ -9,7 +9,7 @@ class Beneficiary extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'name', 'email', 'phone_number', 'address'
+        'name', 'phone_number', 'address'
     ];
 
     public function reservations()

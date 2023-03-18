@@ -15,10 +15,9 @@ class CreateBeneficiariesTable extends Migration
     {
         Schema::create('beneficiaries', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->string('name')->nullable();
             $table->string('phone_number')->unique();
-            $table->string('address');
+            $table->string('address')->nullable();
             $table->timestamps();
         });
         

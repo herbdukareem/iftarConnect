@@ -2,18 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Meal;
 use Illuminate\Http\Request;
+use App\Traits\ApiResponse;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class MealController extends Controller
 {
+    use ApiResponse;
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Meal::with('organizer');
+        if($request->has('reservations')) $query->with('reservations');
+        if($request->has('organizer')) {
+            $query->where('organizer_id', $request->organizer);
+        };
+        return $this->apiResponse('success', 'Collection of iftar', $query->get());
     }
 
     /**
@@ -24,7 +33,15 @@ class MealController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $meal = Meal::where('organizer_id', $request->organizer_id)
+        ->where('start_date', $request->start_date)
+        ->where('end_date', $request->end_date)
+        ->first();
+        if ($meal) {
+            return $this->apiResponse('error', 'Iftar Meal already exists.');
+        }
+        $meal = Meal::create($request->all());
+        return $this->apiResponse('success', 'Iftar Meal created', $meal);
     }
 
     /**
@@ -33,9 +50,9 @@ class MealController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        //
+    public function show($id){
+        $meal = Meal::with('organizer')->where('id', $id)->first();
+        return $this->apiResponse('success', 'Organizer', $meal);
     }
 
     /**
@@ -47,7 +64,13 @@ class MealController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $meal = Meal::findOrFail($id);
+            $meal->update($request->all());
+            return $this->apiResponse('success', 'Updated', $meal);
+        } catch (ModelNotFoundException $e) {
+            return $this->apiResponse('error', 'Not updated', "Could not find meal");
+        }
     }
 
     /**
