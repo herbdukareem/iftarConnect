@@ -22,6 +22,11 @@ class MealController extends Controller
         if($request->has('organizer')) {
             $query->where('organizer_id', $request->organizer);
         };
+
+        if($request->has('latitude') && $request->has('longitude')) {
+            if(!empty($request->latitude) && !empty($request->longitude))  
+                $query->distance($request->latitude, $request->longitude)->orderBy('distance', 'ASC');
+        };
         return $this->apiResponse('success', 'Collection of iftar', $query->get());
     }
 
