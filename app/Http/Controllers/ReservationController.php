@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReservationController extends Controller
@@ -19,7 +20,7 @@ class ReservationController extends Controller
             $query->with('beneficiary');
             $query->where('meal_id', $request->meal_id);
         };
-        return $this->apiResponse(false, 'Reservations for iftar meal(s)', $query->get());
+        return $this->apiResponse(false, $query->get(), Response::HTTP_OK);
     }
 
     /**
@@ -34,14 +35,14 @@ class ReservationController extends Controller
         ->where('reservation_date', date('Y-m-d'))
         ->first();
         if ($meal) {
-            return $this->apiResponse(true, 'Iftar Meal already exists.');
+            return $this->apiResponse(true, 'Iftar Meal already exists.', Response::HTTP_CONFLICT );
         }
         $meal = Reservation::create([
             'meal_id' => $request->meal_id,
             'beneficiary_id' => $request->beneficiary_id,
             'reservation_date' => date('Y-m-d'),
         ]);
-        return $this->apiResponse(false, 'Reservation made', $meal);
+        return $this->apiResponse(false,  $meal, Response::HTTP_CREATED);
     }
 
     /**
@@ -75,7 +76,7 @@ class ReservationController extends Controller
             $reservation->save();
             return $this->apiResponse(false,  $msg, $reservation);
         } catch (ModelNotFoundException $e) {
-            return $this->apiResponse(true, 'Could not remove', "Could not find reservation");
+            return $this->apiResponse(true, "Could not find reservation", Response::HTTP_NOT_FOUND);
         }
     }
 
