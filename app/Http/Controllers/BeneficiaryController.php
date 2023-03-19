@@ -12,9 +12,12 @@ class BeneficiaryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        return $this->apiResponse('success', 'Organizers', Beneficiary::all());
+    public function index(Request $request){
+        $query = Beneficiary::with('reservations');
+        if($request->has('id')) {
+            $query->where('id', $request->id)->orWhere('phone_number', $request->id);
+        };
+        return $this->apiResponse('success', 'Collection of iftar', $query->get());
     }
 
     /**

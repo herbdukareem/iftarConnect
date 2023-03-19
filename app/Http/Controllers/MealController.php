@@ -27,7 +27,7 @@ class MealController extends Controller
             if(!empty($request->latitude) && !empty($request->longitude))  
                 $query->distance($request->latitude, $request->longitude)->orderBy('distance', 'ASC');
         };
-        return $this->apiResponse('success', 'Collection of iftar', $query->get());
+        return $this->apiResponse(false, 'Collection of iftar', $query->get());
     }
 
     /**
@@ -43,10 +43,10 @@ class MealController extends Controller
         ->where('end_date', $request->end_date)
         ->first();
         if ($meal) {
-            return $this->apiResponse('error', 'Iftar Meal already exists.');
+            return $this->apiResponse(true, 'Iftar Meal already exists.');
         }
         $meal = Meal::create($request->all());
-        return $this->apiResponse('success', 'Iftar Meal created', $meal);
+        return $this->apiResponse(false, 'Iftar Meal created', $meal);
     }
 
     /**
@@ -57,7 +57,7 @@ class MealController extends Controller
      */
     public function show($id){
         $meal = Meal::with('organizer')->where('id', $id)->first();
-        return $this->apiResponse('success', 'Organizer', $meal);
+        return $this->apiResponse(false, 'Organizer', $meal);
     }
 
     /**
@@ -72,9 +72,9 @@ class MealController extends Controller
         try {
             $meal = Meal::findOrFail($id);
             $meal->update($request->all());
-            return $this->apiResponse('success', 'Updated', $meal);
+            return $this->apiResponse(false, 'Updated', $meal);
         } catch (ModelNotFoundException $e) {
-            return $this->apiResponse('error', 'Not updated', "Could not find meal");
+            return $this->apiResponse(true, 'Not updated', "Could not find meal");
         }
     }
 

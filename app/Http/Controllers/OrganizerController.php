@@ -18,8 +18,15 @@ class OrganizerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(){
-        return $this->apiResponse('success', 'Organizers', Organizer::all());
+    public function index(Request $request){
+        $query = Organizer::with('meals');
+        if($request->has('organizer')) {
+            $query->where('id', $request->organizer)->orWhere('phone_number', $request->organizer);
+            $result = $query->first();
+        }else{
+           $result = $query->get();
+        }
+        return $this->apiResponse(false, 'Organizer(s)', $result);
     }
 
     /**
@@ -31,10 +38,10 @@ class OrganizerController extends Controller
     public function store(Request $request) {
         $organizer = Organizer::where('phone_number', $request->phone_number)->first();
         if ($organizer) {
-            return $this->apiResponse('error', 'Organizer already exists.');
+            return $this->apiResponse(true, 'Organizer already exists.');
         }
         $organizer = Organizer::create($request->all());
-        return $this->apiResponse('success', 'Organizer Profile created', $organizer);
+        return $this->apiResponse(false, 'Organizer Profile created', $organizer);
     }
 
     /**
@@ -44,8 +51,14 @@ class OrganizerController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id){
-        $organizer = Organizer::with('meals')->where('id', $id)->orWhere('phone_number', $id)->first();
-        return $this->apiResponse('success', 'Organizer', $organizer);
+        try {
+            $organizer = Organizer::with('meals')->where('id', $id)->orWhere('phone_number', $id)->firstOrFail();
+            return $this->apiResponse(false, 'Organizer', $organizer);
+        } catch (ModelNotFoundException $e) {
+            return $this->apiResponse(true, 'Not Found', "Could not find organizer");
+        }
+
+       
     }
 
     /**
@@ -59,9 +72,9 @@ class OrganizerController extends Controller
         try {
             $organizer = Organizer::findOrFail($id);
             $organizer->update($request->all());
-            return $this->apiResponse('success', 'Updated', $organizer);
+            return $this->apiResponse(false, 'Updated', $organizer);
         } catch (ModelNotFoundException $e) {
-            return $this->apiResponse('error', 'Not Updated', "Could not find organizer");
+            return $this->apiResponse(true, 'Not Updated', "Could not find organizer");
         }
       
     }
@@ -74,6 +87,6 @@ class OrganizerController extends Controller
      */
     public function destroy($id){
         Organizer::destroy($id);
-        return $this->apiResponse('success', 'Deleted');
+        return $this->apiResponse(false, 'Deleted');
     }
 }
