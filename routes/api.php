@@ -22,10 +22,25 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/login', function() {
+    return ["error"=>true,"status"=>400, "responseBody" => "You must be logged in to do that!"];
+})->name('login');
+
 Route::group(['prefix' => 'v1', 'as' => 'api.'], function () {
-    Route::apiResources([
-        'meals' => MealController::class,
-        'organizers' => OrganizerController::class,
+    Route::post('/organizers/{phone_number}',[OrganizerController::class, 'show']);    
+    Route::get('/meals',[MealController::class, 'index']);    
+    Route::get('/meals/{id}',[MealController::class, 'show']);
+    
+    Route::get('/organizers',[OrganizerController::class, 'index']);    
+    Route::post('/organizers',[OrganizerController::class, 'store']);    
+    Route::patch('/organizers',[OrganizerController::class, 'update']);    
+
+    Route::group(['middleware'=>"auth:api:organizer"], function(){
+        Route::post('/meals',[MealController::class, 'store']);
+        Route::patch('/meals',[MealController::class, 'update']);            
+    });
+
+    Route::apiResources([                
         'beneficiaries' => BeneficiaryController::class,
         'reservations' => ReservationController::class,
     ]);
