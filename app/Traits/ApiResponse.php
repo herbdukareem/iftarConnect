@@ -15,14 +15,14 @@ trait ApiResponse
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function apiResponse(string $status, string $message, $data = null, int $statusCode = 200, array $headers = []): \Illuminate\Http\JsonResponse
+    public function apiResponse(bool $status = false, $data = null, int $statusCode = 200, array $headers = []): \Illuminate\Http\JsonResponse
     {
         $response = [
-            'status' => $status,
-            'message' => $message,
-            'data' => $data,
+            'error' => $status,
+            'status' => $statusCode,
+            'responseBody' => $data,
         ];
 
-        return response()->json($response, $statusCode, $headers);
+        return response()->json($response, 200, $headers);
     }
 }
