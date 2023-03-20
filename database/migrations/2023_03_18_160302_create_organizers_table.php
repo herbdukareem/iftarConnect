@@ -18,6 +18,7 @@ class CreateOrganizersTable extends Migration
             $table->string('name');
             $table->string('phone_number')->unique();
             $table->string('address');
+            $table->string('password');
             $table->timestamps();
         });
         

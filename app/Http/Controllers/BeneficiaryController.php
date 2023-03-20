@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Beneficiary;
+use App\Models\Organizer;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
+use Exception;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response as FacadesResponse;
 
 class BeneficiaryController extends Controller
@@ -23,6 +26,24 @@ class BeneficiaryController extends Controller
             $query->where('id', $request->id)->orWhere('phone_number', $request->id);
         };
         return $this->apiResponse(false, $query->get());
+    }
+
+  
+    public function login(Request $request){
+     try {
+        $beneficiary = Beneficiary::where('phone_number', $request->phone_number)->first();
+        if(empty($beneficiary)){
+            $beneficiary = Beneficiary::create($request->all());
+        }
+        auth()->login($beneficiary);
+        $accessToken = $beneficiary->createToken('iftarConnect')->accessToken;
+        return $this->apiResponse(false, ['accessToken' => $accessToken, 'user'=> $beneficiary], Response::HTTP_OK);
+
+     } catch (\Exception $e) {
+       return $this->apiResponse(false, $e->getMessage(), Response::HTTP_BAD_REQUEST);
+     }
+       
+      
     }
 
     /**
@@ -49,10 +70,11 @@ class BeneficiaryController extends Controller
     public function show($id)
     {
         try {
-            $organizer = Beneficiary::with('reservations')->where('id', $id)->orWhere('phone_number', $id)->firstOrFail();
-            return $this->apiResponse(false, $organizer);
-        } catch (ModelNotFoundException $e) {
-            return $this->apiResponse(true, "Could not find Beneficiary", Response::HTTP_NOT_FOUND);
+            $beneficiary = Beneficiary::with('reservations')->where('id', $id)->orWhere('phone_number', $id)->firstOrFail();
+           //login at this point
+            return $this->apiResponse(false, $beneficiary);
+        } catch (\Exception $e) {
+            return $this->apiResponse(true, $e->getMessage(), Response::HTTP_NOT_FOUND);
         }
     }
 

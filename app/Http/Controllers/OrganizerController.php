@@ -9,7 +9,10 @@ use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\StoreOrganizerRequest;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class OrganizerController extends Controller
 {
@@ -31,15 +34,24 @@ class OrganizerController extends Controller
     }
 
     public function login(Request $request){
-        $credentials = $request->only('phone_number', 'password');
-
-        if (Auth::guard('api')->attempt($credentials)) {
+        try {
+            $credentials = $request->only('phone_number', 'password');
             $organizer = Organizer::where('phone_number', $credentials['phone_number'])->first();
+            if(empty($organizer)){
+                throw new \Exception('Invalid Phone number or password', Response::HTTP_NOT_FOUND);
+            }
+
+            if(!Hash::check($credentials['password'], $organizer->password)){
+                throw new \Exception('Invalid Credentials', Response::HTTP_NOT_FOUND);
+            }
+            auth()->login($organizer);
             $accessToken = $organizer->createToken('iftarConnect')->accessToken;
-            return $this->apiResponse(false, ['accessToken' => $accessToken], Response::HTTP_OK);
-        } else {
-            return $this->apiResponse(true, 'Invalid credentials', Response::HTTP_NOT_FOUND);
-        }
+            return $this->apiResponse(false, ['accessToken' => $accessToken, 'user'=> $organizer], Response::HTTP_OK);
+           
+        } catch (\Exception $e) {
+            return $this->apiResponse(false, $e->getMessage(), Response::HTTP_BAD_REQUEST);
+          }
+        
     }
 
     /**
@@ -48,13 +60,22 @@ class OrganizerController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) {
-        $organizer = Organizer::where('phone_number', $request->phone_number)->first();
-        if ($organizer) {
-            return $this->apiResponse(true, 'Organizer already exists.', Response::HTTP_CONFLICT);
-        }
-        $organizer = Organizer::create($request->all());
-        return $this->apiResponse(false, $organizer, Response::HTTP_CREATED);
+    public function store(StoreOrganizerRequest $request) {
+        try {
+            $validated = $request->validated();
+            $validated->password =  Hash::make($validated->password);
+            $organizer = Organizer::where($validated)->first();
+            if (!empty($organizer)) {
+                return $this->apiResponse(true, 'Organizer already exists.', Response::HTTP_CONFLICT);
+            }
+            $organizer = Organizer::create($validated);
+            return $this->apiResponse(false, $organizer, Response::HTTP_CREATED);
+            } catch (ValidationException $e) {
+                return $this->apiResponse(true, $e->errors(), Response::HTTP_BAD_REQUEST);
+            }catch (\Exception $e) {
+                return $this->apiResponse(true, $e->getMessage(), Response::HTTP_BAD_REQUEST);
+            }
+       
     }
 
     /**
