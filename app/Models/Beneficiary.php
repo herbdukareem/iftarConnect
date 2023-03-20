@@ -16,6 +16,13 @@ class Beneficiary extends Authenticatable
         'name', 'phone_number', 'email', 'address'
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime:d F, Y',
+        'updated_at' => 'datetime:d F, Y',
+    ];
+
+   
+
     public function reservations()
     {
         return $this->hasMany(Reservation::class);

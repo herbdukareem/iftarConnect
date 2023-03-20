@@ -36,7 +36,7 @@ class OrganizerController extends Controller
     public function login(Request $request){
         try {
             $credentials = $request->only('phone_number', 'password');
-            $organizer = Organizer::where('phone_number', $credentials['phone_number'])->first();
+            $organizer = Organizer::with('meals')->where('phone_number', $credentials['phone_number'])->first();
             if(empty($organizer)){
                 throw new \Exception('Invalid Phone number or password', Response::HTTP_NOT_FOUND);
             }

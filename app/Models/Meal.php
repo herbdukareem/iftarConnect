@@ -17,8 +17,18 @@ class Meal extends Model{
         return $this->belongsTo(Organizer::class);
     }
 
+    public function getTotalReservationsAttribute()
+    {
+        return Reservation::where(['meal_id' => $this->id ])->count();
+    }
+
+
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
     }
+
+    protected $appends = [
+        'total_reservations'
+    ];
 }
