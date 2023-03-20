@@ -9,6 +9,7 @@ use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\StoreOrganizerRequest;
+use Illuminate\Support\Facades\Auth;
 
 class OrganizerController extends Controller
 {
@@ -27,6 +28,18 @@ class OrganizerController extends Controller
            $result = $query->get();
         }
         return $this->apiResponse(false, $result, Response::HTTP_OK);
+    }
+
+    public function login(Request $request){
+        $credentials = $request->only('phone_number', 'password');
+
+        if (Auth::guard('api')->attempt($credentials)) {
+            $organizer = Organizer::where('phone_number', $credentials['phone_number'])->first();
+            $accessToken = $organizer->createToken('iftarConnect')->accessToken;
+            return $this->apiResponse(false, ['accessToken' => $accessToken], Response::HTTP_OK);
+        } else {
+            return $this->apiResponse(true, 'Invalid credentials', Response::HTTP_NOT_FOUND);
+        }
     }
 
     /**

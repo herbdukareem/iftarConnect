@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'passport',
+            'provider' => 'organizers',
+        ],
+        'api_v2' => [
+            'driver' => 'passport',
+            'provider' => 'beneficiaries',
+        ],
     ],
 
     /*
@@ -64,11 +72,14 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'organizers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Organizer::class,
+        ],
+        'beneficiaries' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Beneficiary::class,
+        ],
     ],
 
     /*
@@ -93,6 +104,18 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        'organizers' => [
+            'provider' => 'organizers',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'beneficiaries' => [
+            'provider' => 'beneficiaries',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
     /*
@@ -106,6 +129,6 @@ return [
     |
     */
 
-    'password_timeout' => 10800,
+    'password_timeout' => 2592000,
 
 ];

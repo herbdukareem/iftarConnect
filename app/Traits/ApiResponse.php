@@ -26,3 +26,8 @@ trait ApiResponse
         return response()->json($response, 200, $headers);
     }
 }
+// Client ID: 1
+// Client secret: H1kuDBgPpaKdb6kyBaYb5uemCbVwexa6Lkx9hMpg
+// Password grant client created successfully.
+// Client ID: 2
+// Client secret: GHMHATzheysEiWmBkBuUyXektSkvq6xFq6xiH5Vn
