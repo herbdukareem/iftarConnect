@@ -17,6 +17,10 @@ class CreateMealsTable extends Migration
             $table->id();
             $table->foreignId('organizer_id')->constrained('organizers');
             $table->string('meal_type');
+            $table->string('phone_number')->nullable();
+            $table->string('address');
+            $table->string('landmark')->nullable();
+            $table->string('address_url');
             $table->date('start_date');
             $table->date('end_date');
             $table->time('time_slot');
