@@ -9,7 +9,8 @@ class Meal extends Model{
     use Geographical;
     use HasFactory;
     protected $fillable = [
-        'organizer_id', 'meal_type', 'start_date', 'end_date', 'time_slot', 'maximum_capacity', 'description'
+        'organizer_id', 'meal_type', 'start_date', 'end_date', 'time_slot', 'maximum_capacity', 'description',
+        'address', 'longitude', 'latitude', 'address_url', 'landmark', 'phone_number'
     ];
 
     public function organizer()
@@ -21,6 +22,10 @@ class Meal extends Model{
     {
         return Reservation::where(['meal_id' => $this->id ])->count();
     }
+    
+    public function getReserversAttribute(){
+        return Reservation::where('meal_id', $this->id)->get()->pluck('beneficiary_phone_number');
+    }
 
 
     public function reservations()
@@ -29,6 +34,7 @@ class Meal extends Model{
     }
 
     protected $appends = [
-        'total_reservations'
+        'total_reservations',
+        'reservers'
     ];
 }

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class MealController extends Controller
 {
@@ -16,19 +18,28 @@ class MealController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request){ // Meals that is closed by displaying on the welcome page
         $query = Meal::with('organizer');
-        if($request->has('reservations')) $query->with('reservations');
-        if($request->has('organizer')) {
-            $query->where('organizer_id', $request->organizer);
-        };
-
         if($request->has('latitude') && $request->has('longitude')) {
             if(!empty($request->latitude) && !empty($request->longitude))  
                 $query->distance($request->latitude, $request->longitude)->orderBy('distance', 'ASC');
         };
         return $this->apiResponse(false, $query->get(), Response::HTTP_OK);
+    }
+
+    public function mealsByOwnerType(Request $request){  // Meals based on the owner that logs in
+        try {
+            $user = Auth::user('api:organizer');
+
+            $meals = Meal::with('organizer')->where('organizer_id', $user->id)
+            ->paginate(50);
+            return $this->apiResponse(false, $meals, Response::HTTP_OK);
+        } catch (ValidationException $e) {
+            return $this->apiResponse(false, $e->errors(), Response::HTTP_BAD_REQUEST);
+        }catch (\Exception $e) {
+            return $this->apiResponse(false, $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+      
     }
 
     /**
@@ -39,9 +50,11 @@ class MealController extends Controller
      */
     public function store(Request $request)
     {
-        $meal = Meal::where('organizer_id', $request->organizer_id)
-        ->where('start_date', $request->start_date)
-        ->where('end_date', $request->end_date)
+        $user = Auth::user('api:organizer');
+        $meal = Meal::where('organizer_id', $user->id)
+        ->where('start_date', $request->get('start_date'))
+        ->where('end_date', $request->get('end_date'))
+        ->where('address', $request->get('address'))
         ->first();
         if ($meal) {
             return $this->apiResponse(true, 'Iftar Meal already exists.', Response::HTTP_CONFLICT);

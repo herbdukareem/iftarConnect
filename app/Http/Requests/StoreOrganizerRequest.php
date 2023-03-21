@@ -26,15 +26,15 @@ class StoreOrganizerRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|unique:organizers|max:14',
+            'password' => 'required|string|max:255',
             'address' => 'required|string|max:255'
         ];
     }
     public function messages()
         {
             return [
-                'name.required' => 'Organizer name is required',
-                'phone_number.required' => 'Phone number is required',
-                'phone_number.unique' => 'Phone number is already used',
+                'required' => ':attribute  is required',
+                'unique' => ':attribute is already used',
             ];
         }
 }

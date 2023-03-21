@@ -17,8 +17,17 @@ class Reservation extends Model
         return $this->belongsTo(Meal::class);
     }
 
+    public function getBeneficiaryPhoneNumberAttribute(){
+        return Beneficiary::where('beneficiary_id', $this->beneficiary_id)->first()->phone_number;
+    }
+   
+
     public function beneficiary()
     {
         return $this->belongsTo(Beneficiary::class);
     }
+
+    protected $appends = [
+        'beneficiary_phone_number'
+    ];
 }

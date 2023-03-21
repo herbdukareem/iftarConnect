@@ -31,12 +31,16 @@ Route::group(['prefix' => 'v1', 'as' => 'api'], function () {
     Route::get('/meals',[MealController::class, 'index']);    
     Route::get('/meals/{id}',[MealController::class, 'show']);
     
+    Route::post('/logout',[OrganizerController::class, 'logout']); 
+
     Route::post('/organizers/login',[OrganizerController::class, 'login']); 
     Route::get('/organizers',[OrganizerController::class, 'index']);    
     Route::post('/organizers',[OrganizerController::class, 'store']);    
     Route::patch('/organizers',[OrganizerController::class, 'update']);    
 
     Route::group(['middleware'=>"auth:api:organizer"], function(){
+        Route::get('/organizers/meals',[MealController::class, 'mealsByOwnerType']);
+        
         Route::post('/meals',[MealController::class, 'store']);
         Route::patch('/meals',[MealController::class, 'update']);            
     });

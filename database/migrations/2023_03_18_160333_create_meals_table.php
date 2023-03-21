@@ -24,6 +24,8 @@ class CreateMealsTable extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->time('time_slot');
+            $table->double('longitude');
+            $table->double('latitude');
             $table->integer('maximum_capacity');
             $table->text('description')->nullable();
             $table->timestamps();

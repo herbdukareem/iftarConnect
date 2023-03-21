@@ -12,7 +12,12 @@ class Organizer extends Authenticatable
 {
     use HasFactory, HasApiTokens, Notifiable;
     protected $fillable = [
-        'name', 'phone_number', 'address'
+        'name', 'phone_number', 'address', 'password'
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime:d F, Y',
+        'updated_at' => 'datetime:d F, Y',
     ];
 
     public function meals()
