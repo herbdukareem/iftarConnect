@@ -18,7 +18,7 @@ class Reservation extends Model
     }
 
     public function getBeneficiaryPhoneNumberAttribute(){
-        return Beneficiary::where('beneficiary_id', $this->beneficiary_id)->first()->phone_number;
+        return Beneficiary::where('id', $this->beneficiary_id)->first()->phone_number;
     }
    
 

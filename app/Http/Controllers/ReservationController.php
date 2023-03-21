@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReservationController extends Controller
 {
+    use ApiResponse;
     /**
      * Display a listing of the resource.
      *
@@ -17,9 +19,17 @@ class ReservationController extends Controller
     public function index(Request $request){
         $query = Reservation::with('meal');
         if($request->has('meal')) {
-            $query->with('beneficiary');
-            $query->where('meal_id', $request->meal_id);
+            $query->with(['beneficiary','meal']);
+            $query->whereHas('meal_id', $request->get('meal_id'));
         };
+
+        if($request->has('beneficiary')) {
+             $beneficiary_id = $request->get('beneficiary_id') ;
+            $query->with(['beneficiary'=>function($q)use($beneficiary_id ){
+                $q->where('beneficiary_id',$beneficiary_id);
+            },'meal']);
+        };
+
         return $this->apiResponse(false, $query->get(), Response::HTTP_OK);
     }
 

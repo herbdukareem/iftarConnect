@@ -59,7 +59,10 @@ class MealController extends Controller
         if ($meal) {
             return $this->apiResponse(true, 'Iftar Meal already exists.', Response::HTTP_CONFLICT);
         }
-        $meal = Meal::create($request->all());
+
+        $data = $request->all();
+        $data['organizer_id'] = $user->id;
+        $meal = Meal::create($data);
         return $this->apiResponse(false,  $meal, Response::HTTP_CREATED);
     }
 
