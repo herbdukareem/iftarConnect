@@ -50,20 +50,26 @@ class MealController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user('api:organizer');
-        $meal = Meal::where('organizer_id', $user->id)
-        ->where('start_date', $request->get('start_date'))
-        ->where('end_date', $request->get('end_date'))
-        ->where('address', $request->get('address'))
-        ->first();
-        if ($meal) {
-            return $this->apiResponse(true, 'Iftar Meal already exists.', Response::HTTP_CONFLICT);
-        }
+        try{
+            $user = Auth::user('api:organizer');
+            $meal = Meal::where('organizer_id', $user->id)
+            ->where('start_date', $request->get('start_date'))
+            ->where('end_date', $request->get('end_date'))
+            ->where('address', $request->get('address'))
+            ->first();
+            if ($meal) {
+                return $this->apiResponse(true, 'Iftar Meal already exists.', Response::HTTP_CONFLICT);
+            }
 
-        $data = $request->all();
-        $data['organizer_id'] = $user->id;
-        $meal = Meal::create($data);
-        return $this->apiResponse(false,  $meal, Response::HTTP_CREATED);
+            $data = $request->all();
+            $data['organizer_id'] = $user->id;
+            $meal = Meal::create($data);
+            return $this->apiResponse(false,  $meal, Response::HTTP_CREATED);
+        } catch (ValidationException $e) {
+            return $this->apiResponse(true, $e->errors(), Response::HTTP_BAD_REQUEST);
+        }catch (\Exception $e) {
+            return $this->apiResponse(true, $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 
     /**
