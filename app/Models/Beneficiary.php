@@ -27,4 +27,12 @@ class Beneficiary extends Authenticatable
     {
         return $this->hasMany(Reservation::class);
     }
+    
+    public function getReservationIdsAttribute(){
+        return Reservation::where('beneficiary_id', $this->id)->pluck('id');
+    }
+
+    protected $appends = [
+        'reservation_ids'
+    ];
 }

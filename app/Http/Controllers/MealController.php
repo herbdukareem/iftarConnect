@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Meal;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
+use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -19,10 +20,14 @@ class MealController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request){ // Meals that is closed by displaying on the welcome page
-        $query = Meal::with('organizer');
-        if($request->has('latitude') && $request->has('longitude')) {
+        $today = Carbon::now()->format('Y-m-d');
+
+        $query = Meal::with('organizer');                
+        if($request->latitude && $request->longitude) {
             if(!empty($request->latitude) && !empty($request->longitude))  
-                $query->distance($request->latitude, $request->longitude)->orderBy('distance', 'ASC');
+                $query->distance($request->latitude, $request->longitude)->where(function($q) use($today){
+                    $q->where('start_date','<=', $today)->where('end_date','>=',$today);
+                })->orderBy('distance', 'ASC');
         };
         return $this->apiResponse(false, $query->get(), Response::HTTP_OK);
     }
@@ -50,7 +55,7 @@ class MealController extends Controller
      */
     public function store(Request $request)
     {
-        try{
+        try{            
             $user = Auth::user('api:organizer');
             $meal = Meal::where('organizer_id', $user->id)
             ->where('start_date', $request->get('start_date'))

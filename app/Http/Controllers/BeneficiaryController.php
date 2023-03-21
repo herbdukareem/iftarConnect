@@ -30,10 +30,11 @@ class BeneficiaryController extends Controller
 
   
     public function login(Request $request){
+        
      try {
         $beneficiary = Beneficiary::where('phone_number', $request->phone_number)->first();
         if(empty($beneficiary)){
-            $beneficiary = Beneficiary::create($request->all());
+            $beneficiary = Beneficiary::create(['phone_number'=>$request->phone_number]);
         }
         auth()->login($beneficiary);
         $accessToken = $beneficiary->createToken('iftarConnect')->accessToken;

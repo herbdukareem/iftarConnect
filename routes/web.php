@@ -21,7 +21,8 @@ use App\Http\Controllers\ReservationController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
-Route::apiResource('meals', MealController::class);
+/* Route::apiResource('meals', MealController::class);
 Route::apiResource('organizers', OrganizerController::class);
 Route::apiResource('beneficiaries', BeneficiaryController::class);
 Route::apiResource('reservations', ReservationController::class);
+ */

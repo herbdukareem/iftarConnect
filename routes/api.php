@@ -28,7 +28,7 @@ Route::get('/login', function() {
 
 Route::group(['prefix' => 'v1', 'as' => 'api'], function () {
       
-    Route::get('/meals',[MealController::class, 'index']);    
+    Route::get('/meals/{longitude?}/{latitude?}',[MealController::class, 'index']);    
     Route::get('/meals/{id}',[MealController::class, 'show']);
     
     Route::post('/logout',[OrganizerController::class, 'logout']); 
@@ -52,9 +52,10 @@ Route::group(['prefix' => 'v1', 'as' => 'api'], function () {
         Route::post('/beneficiaries',[BeneficiaryController::class, 'store']);
         
         Route::patch('/beneficiaries',[MealController::class, 'update']);            
+        Route::post('/reservations',[ReservationController::class, 'store']);            
     });
 
-    Route::apiResources([                
+    /* Route::apiResources([                
         'reservations' => ReservationController::class,
-    ]);
+    ]); */
 });

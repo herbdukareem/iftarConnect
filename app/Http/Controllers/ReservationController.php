@@ -7,6 +7,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -40,8 +41,9 @@ class ReservationController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request){
+        $user = Auth::user('api:beneficiary');
         $meal = Reservation::where('meal_id', $request->meal_id)
-        ->where('beneficiary_id', $request->beneficiary_id)
+        ->where('beneficiary_id', $user->id)
         ->where('reservation_date', date('Y-m-d'))
         ->first();
         if ($meal) {
