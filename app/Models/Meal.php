@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Meal extends Model{    
     use HasFactory, Geographical;
+    protected static $kilometers = true;
     protected $fillable = [
         'organizer_id', 'meal_type', 'start_date', 'end_date', 'time_slot', 'maximum_capacity', 'description',
         'address', 'longitude', 'latitude', 'address_url', 'landmark', 'phone_number'

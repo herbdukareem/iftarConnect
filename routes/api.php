@@ -40,9 +40,9 @@ Route::group(['prefix' => 'v1', 'as' => 'api'], function () {
 
     Route::group(['middleware'=>"auth:api:organizer"], function(){
         Route::get('/organizers/meals',[MealController::class, 'mealsByOwnerType']);
-        
         Route::post('/meals',[MealController::class, 'store']);
         Route::patch('/meals',[MealController::class, 'update']);            
+        Route::get('/organizers/reservations/{meal_id}',[ReservationController::class, 'index']);            
     });
 
     Route::get('/beneficiaries',[BeneficiaryController::class, 'index']);
@@ -53,6 +53,7 @@ Route::group(['prefix' => 'v1', 'as' => 'api'], function () {
         
         Route::patch('/beneficiaries',[MealController::class, 'update']);            
         Route::post('/reservations',[ReservationController::class, 'store']);            
+        Route::get('/reservations',[ReservationController::class, 'beneficiaryReservations']);            
     });
 
     /* Route::apiResources([                

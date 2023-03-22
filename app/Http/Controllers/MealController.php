@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class MealController extends Controller
@@ -20,16 +21,23 @@ class MealController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request){ // Meals that is closed by displaying on the welcome page
-        $today = Carbon::now()->format('Y-m-d');
+        try{
+            $today = Carbon::now()->format('Y-m-d');
 
-        $query = Meal::with('organizer');                
-        if($request->latitude && $request->longitude) {
-            if(!empty($request->latitude) && !empty($request->longitude))  
-                $query->distance($request->latitude, $request->longitude)->where(function($q) use($today){
-                    $q->where('start_date','<=', $today)->where('end_date','>=',$today);
-                })->orderBy('distance', 'ASC');
-        };
-        return $this->apiResponse(false, $query->get(), Response::HTTP_OK);
+            $query = Meal::with('organizer');              
+            $subquery = DB::table('reservations as r')->selectRaw('count(r.id) as total_resavations')->whereRaw('r.meal_id = meals.id')->toSql();
+            if($request->latitude && $request->longitude) {
+                if(!empty($request->latitude) && !empty($request->longitude))  
+                    $query->distance($request->latitude, $request->longitude)->where(function($q) use($today){
+                        $q->where('start_date','<=', $today)->where('end_date','>=',$today);
+                    })->whereRaw("($subquery) < maximum_capacity")->orderBy('distance', 'ASC');
+            };            
+            return $this->apiResponse(false, $query->get(), Response::HTTP_OK);
+        } catch (ValidationException $e) {
+            return $this->apiResponse(false, $e->errors(), Response::HTTP_BAD_REQUEST);
+        }catch (\Exception $e) {
+            return $this->apiResponse(false, $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 
     public function mealsByOwnerType(Request $request){  // Meals based on the owner that logs in

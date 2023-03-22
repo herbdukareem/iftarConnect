@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Beneficiary;
+use App\Models\Meal;
 use App\Models\Reservation;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -18,22 +20,26 @@ class ReservationController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request){
-        $query = Reservation::with('meal');
-        if($request->has('meal')) {
-            $query->with(['beneficiary','meal']);
-            $query->whereHas('meal_id', $request->get('meal_id'));
-        };
-
-        if($request->has('beneficiary')) {
-             $beneficiary_id = $request->get('beneficiary_id') ;
-            $query->with(['beneficiary'=>function($q)use($beneficiary_id ){
-                $q->where('beneficiary_id',$beneficiary_id);
-            },'meal']);
-        };
-
-        return $this->apiResponse(false, $query->get(), Response::HTTP_OK);
+        try{                    
+            $reservations = Reservation::with('meal')->where(['reservation_date'=>date('Y-m-d'),"meal_id"=> $request->meal_id])->get()->pluck('beneficiary_phone_number');      
+            return $this->apiResponse(false, $reservations, Response::HTTP_OK);
+        }catch(\Exception $e){
+            return $this->apiResponse(true, $e->getMessage(), 400);
+        }
     }
 
+    public function beneficiaryReservations(Request $request){
+        try{        
+            $user = Auth::user('api:beneficiary');
+            $reservations = Reservation::with('meal.organizer')->where(['beneficiary_id'=> $user->id, 'reservation_date'=>date('Y-m-d')])->get()->pluck('meal');      
+            return $this->apiResponse(false, $reservations, Response::HTTP_OK);
+        }catch(\Exception $e){
+            return $this->apiResponse(true, $e->getMessage(), $e->getCode());
+        }
+    }
+
+
+  
     /**
      * Store a newly created resource in storage.
      *
@@ -41,20 +47,33 @@ class ReservationController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request){
-        $user = Auth::user('api:beneficiary');
-        $meal = Reservation::where('meal_id', $request->meal_id)
-        ->where('beneficiary_id', $user->id)
-        ->where('reservation_date', date('Y-m-d'))
-        ->first();
-        if ($meal) {
-            return $this->apiResponse(true, 'Iftar Meal already exists.', Response::HTTP_CONFLICT );
+        try{        
+            $user = Auth::user('api:beneficiary');
+            
+            $reservation = Reservation::where(['meal_id'=>$request->get('meal_id'), 'reservation_date'=> date('Y-m-d')])->get();
+            
+            if ($reservation->where('beneficiary_id' , $user->id)->count()>0) {
+                return $this->apiResponse(true, ["data"=>$reservation, "message"=>'Iftar Meal already reserved.'], Response::HTTP_CONFLICT );
+            }
+            
+            $meal = Meal::where('id',$request->get('meal_id'))->first();
+            if (empty($meal)) {
+                throw new \Exception('Meal not found',Response::HTTP_NOT_FOUND );                
+            }
+            
+            if( $reservation->count() < $meal->maximum_capacity){
+                $newreservation = Reservation::insert([
+                    'meal_id' => $request->get('meal_id'),
+                    'beneficiary_id' => $user->id,
+                    'reservation_date' => date('Y-m-d'),
+                    'created_at' => date('Y-m-d'),
+                ]);
+                return $this->apiResponse(false,  $newreservation, Response::HTTP_CREATED);
+            }
+            throw new \Exception("Sorry, all slots taken.", Response::HTTP_TOO_MANY_REQUESTS);                       
+        }catch(\Exception $e){
+            return $this->apiResponse(true, $e->getMessage(), $e->getCode());
         }
-        $meal = Reservation::create([
-            'meal_id' => $request->meal_id,
-            'beneficiary_id' => $request->beneficiary_id,
-            'reservation_date' => date('Y-m-d'),
-        ]);
-        return $this->apiResponse(false,  $meal, Response::HTTP_CREATED);
     }
 
     /**

@@ -18,7 +18,7 @@ class Reservation extends Model
     }
 
     public function getBeneficiaryPhoneNumberAttribute(){
-        return Beneficiary::where('id', $this->beneficiary_id)->first()->phone_number;
+        return Beneficiary::where('id', $this->beneficiary_id)->first()?->phone_number;
     }
    
 
@@ -27,7 +27,13 @@ class Reservation extends Model
         return $this->belongsTo(Beneficiary::class);
     }
 
+    public function getSlotsAttribute()
+    {
+        return Meal::where('id', $this->meal_id)->first()?->maximum_capacity;
+    }
+
     protected $appends = [
-        'beneficiary_phone_number'
+        'beneficiary_phone_number',
+        'slots'
     ];
 }
